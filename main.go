@@ -1,7 +1,14 @@
 package main
 
-import "fmt"
+import (
+	"log"
+	"renet/app"
+)
 
 func main(){
-	fmt.Println("Hi")
+	application := app.NewApplication()
+	err := application.Run()
+	if err != nil{
+		log.Println("Error occured while starting the application")
+	}
 }
