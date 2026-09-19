@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"renet/config/env"
+	"renet/router"
 	"strings"
 	"time"
 )
@@ -29,7 +30,7 @@ func (app *Application)Run() error{
 
 	server:=http.Server{
 		Addr: addr,
-		Handler: http.DefaultServeMux,
+		Handler: router.HealthRouter(),
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
