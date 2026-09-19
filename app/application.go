@@ -30,7 +30,7 @@ func (app *Application)Run() error{
 
 	server:=http.Server{
 		Addr: addr,
-		Handler: router.HealthRouter(),
+		Handler: router.Router(),
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
