@@ -5,22 +5,22 @@ import (
 	"renet/utils/converter"
 )
 
-func SuccessResponse(w http.ResponseWriter,status int,data any) error{
+func SuccessResponse(w http.ResponseWriter, status int, data any) error {
 	response := map[string]any{}
 	response["status"] = status
 	response["data"] = data
 
-	return converter.ConvertToJSON(w,response)
+	return converter.ConvertToJSON(w, status, response)
 }
-func ErrorResponse(w http.ResponseWriter,status int,err error,data any) error{
+func ErrorResponse(w http.ResponseWriter, status int, err error, data any) error {
 	response := map[string]any{}
 	response["status"] = status
 	response["data"] = data
 
-	if err != nil{
+	if err != nil {
 		response["error"] = err.Error()
-	}else{
+	} else {
 		response["error"] = nil
 	}
-	return converter.ConvertToJSON(w,response)
+	return converter.ConvertToJSON(w, status, response)
 }

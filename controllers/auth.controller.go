@@ -40,8 +40,6 @@ func (cntrl AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
 	_ = formatters.SuccessResponse(w, http.StatusCreated, map[string]string{"message": "user created"})
 }
 func Login()  {}
