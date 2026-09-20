@@ -3,6 +3,7 @@ package app
 import (
 	"log"
 	"net/http"
+	"renet/config/db"
 	"renet/config/env"
 	"renet/router"
 	"strings"
@@ -27,7 +28,8 @@ func (app *Application)Run() error{
 	if(!strings.HasPrefix(addr,":")){
 		addr = ":"+addr
 	}
-
+	db,_ := db.InitDB()
+	log.Println(db)
 	server:=http.Server{
 		Addr: addr,
 		Handler: router.Router(),
