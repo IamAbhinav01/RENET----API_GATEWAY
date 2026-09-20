@@ -31,6 +31,25 @@ func InitDB() (db *gorm.DB, err error){
 		DBSSL: env.GetString("DBSSL"),
 	}
 
+	if cfg.DBUSER == ""{
+		return nil,fmt.Errorf("Error occured while parsing the USER cnfgs for DB ")
+	}
+	if cfg.DBHOST == ""{
+		return nil,fmt.Errorf("Error occured while parsing the HOST cnfgs for DB ")
+	}
+	if cfg.DBName == ""{
+		return nil,fmt.Errorf("Error occured while parsing the NAME cnfgs for DB ")
+	}
+	if cfg.DBPASS == ""{
+		return nil,fmt.Errorf("Error occured while parsing the PASS cnfgs for DB ")
+	}
+	if cfg.DBPORT == ""{
+		return nil,fmt.Errorf("Error occured while parsing the PORT cnfgs for DB ")
+	}
+	if cfg.DBSSL == ""{
+		return nil,fmt.Errorf("Error occured while parsing the SSL cnfgs for DB ")
+	}
+
 	// dsn := "host=localhost user=gorm password=gorm dbname=gorm port=9920 sslmode=disable TimeZone=Asia/Shanghai"
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",cfg.DBHOST,cfg.DBUSER,cfg.DBPASS,cfg.DBName,cfg.DBPORT,cfg.DBSSL)
 
@@ -39,7 +58,7 @@ func InitDB() (db *gorm.DB, err error){
 	if DBerr != nil{
 		return nil,fmt.Errorf("failed to connect to database: %w",DBerr)
 	}
-	
+
 	pgsql,err := DB.DB()
 	if err!=nil{
 		return nil,err
