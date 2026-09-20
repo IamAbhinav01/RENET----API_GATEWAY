@@ -3,9 +3,12 @@ package app
 import (
 	"log"
 	"net/http"
+	"renet/DB/repositories"
 	"renet/config/db"
 	"renet/config/env"
+	"renet/controllers"
 	"renet/router"
+	"renet/services"
 	"strings"
 	"time"
 )
@@ -32,9 +35,15 @@ func (app *Application) Run() error {
 	if err != nil {
 		return err
 	}
+
+	repository := repositories.NewUserRespository(database)
+	service:=services.NewUserService(repository)
+	controller:=controllers.NewAuthController(service)
+	appRouter:=router.Router(controller)
+
 	server := http.Server{
 		Addr:         addr,
-		Handler:      router.Router(database),
+		Handler:      appRouter,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
