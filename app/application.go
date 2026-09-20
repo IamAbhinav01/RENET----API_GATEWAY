@@ -20,24 +20,26 @@ func NewApplication() *Application { // point towards same memory address
 	}
 }
 
-func (app *Application)Run() error{
+func (app *Application) Run() error {
 	addr := app.PORT
 
 	//add : if not exsists
 
-	if(!strings.HasPrefix(addr,":")){
-		addr = ":"+addr
+	if !strings.HasPrefix(addr, ":") {
+		addr = ":" + addr
 	}
-	db,_ := db.InitDB()
-	log.Println(db)
-	server:=http.Server{
-		Addr: addr,
-		Handler: router.Router(),
+	database, err := db.InitDB()
+	if err != nil {
+		return err
+	}
+	server := http.Server{
+		Addr:         addr,
+		Handler:      router.Router(database),
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
 
-	log.Println("Server is running on PORT",addr)
+	log.Println("Server is running on PORT", addr)
 
 	return server.ListenAndServe()
 }
