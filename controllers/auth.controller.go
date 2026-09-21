@@ -1,11 +1,12 @@
 package controllers
 
 import (
-	"errors"
 	"net/http"
+	dtos "renet/DTOs"
+	"renet/middlewares"
 	"renet/services"
-	"renet/utils/converter"
 	"renet/utils/formatters"
+	"strings"
 )
 
 type AuthController struct {
@@ -20,22 +21,23 @@ func NewAuthController(serv services.UserService) *AuthController {
 }
 
 func (cntrl AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
-	var request signupRequest
-	if err := converter.DecodeFromJSON(r, &request); err != nil {
-		_ = formatters.ErrorResponse(w, http.StatusBadRequest, err, nil)
-		return
-	}
-	if request.Name == "" || request.Email == "" || request.Password == "" {
-		_ = formatters.ErrorResponse(w, http.StatusBadRequest, errors.New("name, email, and password are required"), nil)
+	payload, ok := r.Context().Value(middlewares.PayloadContextKet).(dtos.SignupRequestDTO)
+	if !ok {
+		formatters.ErrorResponse(w, http.StatusBadRequest, nil, "Invalid signup request")
 		return
 	}
 
-	if err := cntrl.AuthService.SignUpUser(request.Name, request.Email, request.Password); err != nil {
-		_ = formatters.ErrorResponse(w, http.StatusInternalServerError, err, nil)
+	err := cntrl.AuthService.SignUpUser(payload)
+
+	if err!= nil{
+		status := http.StatusInternalServerError
+		if strings.Contains(strings.ToLower(err.Error()),"duplicate") || strings.Contains(err.Error(), "1062"){
+			status = http.StatusConflict
+		}
+		formatters.ErrorResponse(w,status,err,"Error occured while signing the user")
 		return
 	}
-
-	_ = formatters.SuccessResponse(w, http.StatusCreated, map[string]string{"message": "user created"})
+	formatters.SuccessResponse(w,http.StatusCreated,"User sign-up successfully")
 }
 func Login()  {}
 func LogOut() {}

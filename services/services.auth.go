@@ -3,10 +3,11 @@ package services
 import (
 	"log"
 	"renet/DB/repositories"
+	dtos "renet/DTOs"
 )
 
 type UserService interface {
-	SignUpUser(_name string, email string, password string) error
+	SignUpUser(payload dtos.SignupRequestDTO) error
 }
 
 type UserServiceImpl struct {
@@ -19,9 +20,9 @@ func NewUserService(_repo repositories.UserRepository) UserService {
 	}
 }
 
-func (user UserServiceImpl) SignUpUser(_name string, email string, password string) error {
+func (user UserServiceImpl) SignUpUser(payload dtos.SignupRequestDTO) error {
 
-	err := user.repo.CreateUser(_name, email, password)
+	err := user.repo.CreateUser(payload.Name,payload.Email,payload.Password)
 	if err != nil {
 		log.Println("Error occure while sending data from service to repo", err)
 		return err

@@ -8,7 +8,7 @@ import (
 	"renet/utils/formatters"
 )
 
-var payloadContextKet string = "payload"
+var PayloadContextKet string = "payload"
 
 func SignUpRequestValidation(next http.Handler) http.Handler{
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -20,7 +20,7 @@ func SignUpRequestValidation(next http.Handler) http.Handler{
 		}
 
 		reqContext := r.Context()
-		ctx := context.WithValue(reqContext,payloadContextKet,payload)
+		ctx := context.WithValue(reqContext,PayloadContextKet,payload)
 
 		next.ServeHTTP(w,r.WithContext(ctx))
 
