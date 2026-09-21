@@ -12,11 +12,6 @@ type AuthController struct {
 	AuthService services.UserService
 }
 
-type signupRequest struct {
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
 
 func NewAuthController(serv services.UserService) *AuthController {
 	return &AuthController{
