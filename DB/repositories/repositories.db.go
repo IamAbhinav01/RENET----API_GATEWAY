@@ -19,7 +19,7 @@ func NewUserRespository(_db *gorm.DB)UserRepository{
 		db: _db,
 	}
 }
-
+/*I need to confiure some way of makeit using solid principles*/
 func(repo *UserRespositoryImpl)CreateUser(_name string, email string, password string) error{
 
 	user := schemas.User{
