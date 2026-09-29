@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"log"
 	"renet/DB/repositories"
 	dtos "renet/DTOs"
@@ -9,6 +10,7 @@ import (
 
 type UserService interface {
 	SignUpUser(payload dtos.SignupRequestDTO) error
+	SignInUser(payload dtos.SignInRequestDTO) error
 }
 
 type UserServiceImpl struct {
@@ -41,4 +43,30 @@ func (user UserServiceImpl) SignUpUser(payload dtos.SignupRequestDTO) error {
 	}
 
 	return nil
+}
+
+func(user UserServiceImpl) SignInUser(payload dtos.SignInRequestDTO) error{
+
+	cfg := argon2id.NewArgonConfig()
+	
+
+	userDetails,err := user.repo.GetUserCredentialByEmail(payload.Email)
+	if err != nil{
+		log.Println("Error occured while accessing user details")
+		return err
+	}
+
+	match,err := cfg.VerifyPassword(userDetails.Password,payload.Password)
+	if err != nil{
+		log.Println("Error occured while verifying the user password")
+		return err
+	}
+
+	if(!match){
+		log.Println("Invalid Password send the correct password")
+		return fmt.Errorf("Invalid credential,check your password")
+	}
+
+	return nil
+
 }

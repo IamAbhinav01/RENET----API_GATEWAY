@@ -66,12 +66,13 @@ func InitDB() (db *gorm.DB, err error) {
 	}
 
 	err = pgsql.Ping()
+	
 	if err != nil {
 		log.Println("Failed to connected with the DB")
 		return nil, err
 	}
 
-	if err := DB.AutoMigrate(&schemas.User{}); err != nil {
+	if err := DB.AutoMigrate(&schemas.SignUp{}); err != nil {
 		return nil, fmt.Errorf("failed to migrate user table: %w", err)
 	}
 	log.Println("Successfully connected with the DB")
