@@ -8,7 +8,7 @@ import (
 )
 
 type UserRepository interface {
-	CreateUser(_name string, email string, password string) error
+	CreateUser(_name string, email string, password string) (int, error)
 	GetUserCredentialByEmail(email string) (*schemas.SignUp, error)
 }
 
@@ -23,7 +23,7 @@ func NewUserRespository(_db *gorm.DB)UserRepository{
 }
 
 
-func(repo *UserRespositoryImpl)CreateUser(_name string, email string, password string) error{
+func(repo *UserRespositoryImpl)CreateUser(_name string, email string, password string) (int, error){
 
 	user := schemas.SignUp{
 		Name: _name,
@@ -34,10 +34,10 @@ func(repo *UserRespositoryImpl)CreateUser(_name string, email string, password s
 	result := repo.db.Create(&user)
 	
 	if result.Error != nil{
-		return result.Error
+		return 0, result.Error
 	}
 
-	return nil
+	return user.ID, nil
 }
 
 func(repo *UserRespositoryImpl) GetUserCredentialByEmail(email string) (*schemas.SignUp, error) {

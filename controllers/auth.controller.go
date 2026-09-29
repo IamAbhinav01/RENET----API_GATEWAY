@@ -3,21 +3,25 @@ package controllers
 import (
 	"net/http"
 	dtos "renet/DTOs"
+	"renet/redis"
 	"renet/services"
 	"renet/utils/formatters"
 	"renet/utils/helpers"
+	"strconv"
 	"strings"
 	"time"
 )
 
 type AuthController struct {
 	AuthService services.UserService
+	SessionManager *redis.SessionManager
 }
 
 
-func NewAuthController(serv services.UserService) *AuthController {
+func NewAuthController(serv services.UserService,session *redis.SessionManager) *AuthController {
 	return &AuthController{
 		AuthService: serv,
+		SessionManager: session,
 	}
 }
 
@@ -28,7 +32,7 @@ func (cntrl AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := cntrl.AuthService.SignUpUser(payload)
+	userID, err := cntrl.AuthService.SignUpUser(payload)
 
 	if err!= nil{
 		status := http.StatusInternalServerError
@@ -38,6 +42,31 @@ func (cntrl AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 		formatters.ErrorResponse(w,status,err,"Error occured while signing the user")
 		return
 	}
+
+
+	userSession := &redis.Session{
+		Data: map[string]string{
+			"user_id": strconv.Itoa(userID),
+			"email":payload.Email,
+		},
+	}
+
+	err = cntrl.SessionManager.Migrate(r.Context(),userSession)
+	if err == nil{
+		cookie:= &http.Cookie{
+			Name: "session_id",
+			Value: userSession.Id,
+			Path: "/",
+			MaxAge: 86400,
+			HttpOnly: true,
+			Secure: true,
+			SameSite: http.SameSiteStrictMode,
+		}
+		http.SetCookie(w,cookie)
+	}
+
+
+
 	formatters.SuccessResponse(w,http.StatusCreated,"User sign-up successfully")
 }
 func (cntrl AuthController)Login(w http.ResponseWriter, r *http.Request)  {

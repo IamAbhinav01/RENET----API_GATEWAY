@@ -9,7 +9,7 @@ import (
 )
 
 type UserService interface {
-	SignUpUser(payload dtos.SignupRequestDTO) error
+	SignUpUser(payload dtos.SignupRequestDTO) (int, error)
 	SignInUser(payload dtos.SignInRequestDTO) error
 }
 
@@ -23,26 +23,26 @@ func NewUserService(_repo repositories.UserRepository) UserService {
 	}
 }
 
-func (user UserServiceImpl) SignUpUser(payload dtos.SignupRequestDTO) error {
+func (user UserServiceImpl) SignUpUser(payload dtos.SignupRequestDTO) (int, error) {
 
 	cfg := argon2id.NewArgonConfig()
 	hashedPassword,err := cfg.HashPassword(payload.Password)
 	log.Println("Hashed Password : ",hashedPassword)
 	if err != nil{
 		log.Println("Error occured while hashing the password")
-		return err
+		return 0, err
 	}
 
-	err = user.repo.CreateUser(payload.Name,payload.Email,hashedPassword)
+	userID, err := user.repo.CreateUser(payload.Name,payload.Email,hashedPassword)
 	if err != nil {
 		log.Println("Error occure while sending data from service to repo", err)
-		return err
+		return 0, err
 	} else {
 
 		log.Println("Successfully sent data from service layer to repo layer")
 	}
 
-	return nil
+	return userID, nil
 }
 
 func(user UserServiceImpl) SignInUser(payload dtos.SignInRequestDTO) error{
