@@ -6,13 +6,14 @@ import (
 	"fmt"
 	"log"
 	"renet/config/env"
+	"strings"
 
 	"golang.org/x/crypto/argon2"
 )
 
 type Argon2Handlers interface {
 	HashPassword(inputPassword string)(string,error)
-	VerifyPassword(hashedPassword string,userPassword string)
+	VerifyPassword(hashedPassword string,userPassword string)(bool,error)
 }
 
 type Argon2Configs struct {
@@ -84,6 +85,74 @@ func(config *Argon2Configs) HashPassword(inputPassword string)(string,error){
 
 }
 
-func(config *Argon2Configs)VerifyPassword(hashedPassword string,userPassword string){
+func parseArgon2dHash(hashedPassword string)(*Argon2Configs,error){
+	components := strings.Split(hashedPassword, "$")
+
+// 	components[0] = ""
+// components[1] = "argon2id"
+// components[2] = "v=19"
+// components[3] = "m=65536,t=3,p=4"
+// components[4] = "G8NYSxrA+UMGHJbZVIXXXQ"
+// components[5] = "UrHyBcYfCEms+92QVzGmfYqrWtH54WJY9FuROBQi/X8"
+
+	if len(components) != 6{
+		fmt.Printf("Invalid Password Hash format")
+		return nil,fmt.Errorf("invalid hash format structure")
+	}
+
+	if !strings.HasPrefix(components[1],"argon2id"){
+		fmt.Printf("Unsupported argon format")
+		return nil,fmt.Errorf("Unsupported argon format")
+	}
+
+	var version int
+	fmt.Sscanf(components[2],"v=%d",&version)
+
+	if version != argon2.Version{
+		fmt.Printf("unsupported argon2 version")
+		return nil,fmt.Errorf("unsupported argon2 version")
+	}
+
+	config :=&Argon2Configs{}
+
+	_,err := fmt.Sscanf(components[3],"m=%d,t=%d,p=%d",&config.MemoryCost,&config.TimeCost,&config.Threads)
+
+	if err != nil{
+		fmt.Printf("invalid argon2 format")
+		return nil,err
+	}
+
+	salt,err := base64.StdEncoding.DecodeString(components[4])
+
+	if err != nil{
+		fmt.Println("salt decoding salt")
+		return nil,err
+	}
+
+	config.Salt = salt
+
+	hash,hashErr := base64.StdEncoding.DecodeString(components[5])
+
+	if hashErr!=nil{
+		fmt.Println("hash decoding failed")
+		return nil,hashErr
+	}
+
+	config.HashRaw = hash
+	config.KeyLength = uint32(len(hash))
+
+	return config,nil
+}
+
+func(config *Argon2Configs)VerifyPassword(hashedPassword string,userPassword string)(bool,error){
+	// $argon2id$v=19$m=65536,t=3,p=4$G8NYSxrA+UMGHJbZVIXXXQ$UrHyBcYfCEms+92QVzGmfYqrWtH54WJY9FuROBQi/X8
+
+	parsecfg,err := parseArgon2dHash(hashedPassword)
+
+	if err != nil{
+		fmt.Println("Error happend while parsing the password")
+		return false,fmt.Errorf("Error happend while verigying the hash")
+	}
+
 	
 }
