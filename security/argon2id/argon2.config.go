@@ -123,7 +123,7 @@ func parseArgon2dHash(hashedPassword string)(*Argon2Configs,error){
 		return nil,err
 	}
 
-	salt,err := base64.StdEncoding.DecodeString(components[4])
+	salt,err := base64.RawStdEncoding.DecodeString(components[4])
 
 	if err != nil{
 		fmt.Println("salt decoding salt")
@@ -132,7 +132,7 @@ func parseArgon2dHash(hashedPassword string)(*Argon2Configs,error){
 
 	config.Salt = salt
 
-	hash,hashErr := base64.StdEncoding.DecodeString(components[5])
+	hash,hashErr := base64.RawStdEncoding.DecodeString(components[5])
 
 	if hashErr!=nil{
 		fmt.Println("hash decoding failed")

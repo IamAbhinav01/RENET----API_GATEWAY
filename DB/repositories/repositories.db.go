@@ -9,7 +9,7 @@ import (
 
 type UserRepository interface {
 	CreateUser(_name string, email string, password string) error
-	GetUserCredentialByEmail(email string) (*schemas.SignIn,error)
+	GetUserCredentialByEmail(email string) (*schemas.SignUp, error)
 }
 
 type UserRespositoryImpl struct {
@@ -40,20 +40,18 @@ func(repo *UserRespositoryImpl)CreateUser(_name string, email string, password s
 	return nil
 }
 
-func(repo *UserRespositoryImpl) GetUserCredentialByEmail(email string) (*schemas.SignIn,error){
+func(repo *UserRespositoryImpl) GetUserCredentialByEmail(email string) (*schemas.SignUp, error) {
 
-	user:=schemas.SignIn{
+	user := schemas.SignUp{
 		Email: email,
 	}
 
 	result := repo.db.Select("id","email","password").Where("email=?",email).First(&user)
-
-	log.Println("Successfully fetched the credential using email")
-
 	if result.Error != nil{
 		return nil,result.Error
 	}
 
+	log.Println("Successfully fetched the credential using email")
 	return &user,nil
 
 }
