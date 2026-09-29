@@ -9,5 +9,5 @@ import (
 
 func RegisterAuthRouter(r chi.Router, authController *controllers.AuthController) {
 	r.With(middlewares.SignUpRequestValidation).Post("/signup", authController.SignUp)
-
+	r.With(middlewares.SignInRequestValidation).Post("/login", authController.Login)
 }

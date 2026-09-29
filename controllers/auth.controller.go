@@ -3,10 +3,11 @@ package controllers
 import (
 	"net/http"
 	dtos "renet/DTOs"
-	"renet/middlewares"
 	"renet/services"
 	"renet/utils/formatters"
+	"renet/utils/helpers"
 	"strings"
+	"time"
 )
 
 type AuthController struct {
@@ -21,7 +22,7 @@ func NewAuthController(serv services.UserService) *AuthController {
 }
 
 func (cntrl AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
-	payload, ok := r.Context().Value(middlewares.PayloadContextKet).(dtos.SignupRequestDTO)
+	payload, ok := r.Context().Value(helpers.PayloadContextKet).(dtos.SignupRequestDTO)
 	if !ok {
 		formatters.ErrorResponse(w, http.StatusBadRequest, nil, "Invalid signup request")
 		return
@@ -39,5 +40,24 @@ func (cntrl AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 	}
 	formatters.SuccessResponse(w,http.StatusCreated,"User sign-up successfully")
 }
-func Login()  {}
+func (cntrl AuthController)Login(w http.ResponseWriter, r *http.Request)  {
+	const loggedInDuration =  1 * time.Second
+	startTime := time.Now()
+	defer func() {
+		elapsed := time.Since(startTime)
+		if elapsed < loggedInDuration {
+			time.Sleep(loggedInDuration - elapsed)
+		}
+	}()
+
+	payload := r.Context().Value(helpers.PayloadContextKet).(dtos.SignInRequestDTO)
+	
+	err := cntrl.AuthService.SignInUser(payload)
+
+	if err != nil {
+		formatters.ErrorResponse(w,http.StatusInternalServerError,err,"Error occured while signing the user")
+		return
+	}
+	formatters.SuccessResponse(w,http.StatusCreated,"User sign-In successfully")
+}
 func LogOut() {}
