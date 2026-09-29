@@ -11,7 +11,8 @@ import (
 )
 
 type Argon2Handlers interface {
-	HashPassword()
+	HashPassword(inputPassword string)(string,error)
+	VerifyPassword(hashedPassword string,userPassword string)
 }
 
 type Argon2Configs struct {
@@ -81,4 +82,8 @@ func(config *Argon2Configs) HashPassword(inputPassword string)(string,error){
 
 	return encodedHash,nil
 
+}
+
+func(config *Argon2Configs)VerifyPassword(hashedPassword string,userPassword string){
+	
 }
