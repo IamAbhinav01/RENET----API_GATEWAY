@@ -81,12 +81,56 @@ func (cntrl AuthController)Login(w http.ResponseWriter, r *http.Request)  {
 
 	payload := r.Context().Value(helpers.PayloadContextKet).(dtos.SignInRequestDTO)
 	
-	err := cntrl.AuthService.SignInUser(payload)
+	userID, err := cntrl.AuthService.SignInUser(payload)
 
 	if err != nil {
 		formatters.ErrorResponse(w,http.StatusInternalServerError,err,"Error occured while signing the user")
 		return
 	}
+
+	user_session := &redis.Session{
+		Data: map[string]string{
+			"user_id":strconv.Itoa(userID),
+			"email":payload.Email,
+		},
+	}
+
+	err = cntrl.SessionManager.Migrate(r.Context(), user_session)
+	if err == nil{
+		cookie := &http.Cookie{
+			Name:     "session_id",
+			Value:    user_session.Id,
+			Path:     "/",
+			MaxAge:   86400,
+			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteStrictMode,
+		}
+		http.SetCookie(w, cookie)
+	}else{
+		formatters.ErrorResponse(w, http.StatusInternalServerError, err, "Failed to create session")
+		return
+	}
 	formatters.SuccessResponse(w,http.StatusCreated,"User sign-In successfully")
 }
-func LogOut() {}
+func (cntrl AuthController) LogOut(w http.ResponseWriter,r *http.Request){
+
+	cookie,err:= r.Cookie("session_id")
+
+	if err == nil{
+		_= cntrl.SessionManager.Store().Destroy(r.Context(),cookie.Value)
+	}
+
+	DeletedCookie := &http.Cookie{
+		Name: "session_id",
+		Value: "",
+		Path: "/",
+		MaxAge: -1,
+		HttpOnly: true,
+		Secure: true,
+		SameSite: http.SameSiteStrictMode,
+	}
+	http.SetCookie(w,DeletedCookie)
+
+	formatters.SuccessResponse(w,http.StatusAccepted,"Logged-OUT successfully")
+}

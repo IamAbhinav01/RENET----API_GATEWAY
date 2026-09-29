@@ -10,7 +10,7 @@ import (
 
 type UserService interface {
 	SignUpUser(payload dtos.SignupRequestDTO) (int, error)
-	SignInUser(payload dtos.SignInRequestDTO) error
+	SignInUser(payload dtos.SignInRequestDTO) (int, error)
 }
 
 type UserServiceImpl struct {
@@ -45,7 +45,7 @@ func (user UserServiceImpl) SignUpUser(payload dtos.SignupRequestDTO) (int, erro
 	return userID, nil
 }
 
-func(user UserServiceImpl) SignInUser(payload dtos.SignInRequestDTO) error{
+func(user UserServiceImpl) SignInUser(payload dtos.SignInRequestDTO) (int, error){
 
 	cfg := argon2id.NewArgonConfig()
 	
@@ -53,20 +53,20 @@ func(user UserServiceImpl) SignInUser(payload dtos.SignInRequestDTO) error{
 	userDetails,err := user.repo.GetUserCredentialByEmail(payload.Email)
 	if err != nil{
 		log.Println("Error occured while accessing user details")
-		return err
+		return 0, err
 	}
 
 	match,err := cfg.VerifyPassword(userDetails.Password,payload.Password)
 	if err != nil{
 		log.Println("Error occured while verifying the user password")
-		return err
+		return 0, err
 	}
 
 	if(!match){
 		log.Println("Invalid Password send the correct password")
-		return fmt.Errorf("Invalid credential,check your password")
+		return 0, fmt.Errorf("Invalid credential,check your password")
 	}
 
-	return nil
+	return userDetails.ID, nil
 
 }
