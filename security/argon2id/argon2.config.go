@@ -2,6 +2,7 @@ package argon2id
 
 import (
 	"crypto/rand"
+	"crypto/subtle"
 	"encoding/base64"
 	"fmt"
 	"log"
@@ -154,5 +155,9 @@ func(config *Argon2Configs)VerifyPassword(hashedPassword string,userPassword str
 		return false,fmt.Errorf("Error happend while verigying the hash")
 	}
 
-	
+	computedHash := argon2.IDKey([] byte(userPassword),parsecfg.Salt,parsecfg.TimeCost,parsecfg.MemoryCost,parsecfg.Threads,parsecfg.KeyLength)
+
+	match := subtle.ConstantTimeCompare(computedHash,parsecfg.HashRaw) == 1
+
+	return match,nil
 }
