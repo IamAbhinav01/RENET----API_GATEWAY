@@ -53,8 +53,14 @@ func Router(Authcntrl *controllers.AuthController) *chi.Mux {
 		middlewares.ForwardSessionUserID,
 	).Handle("/catalog/api/history", catalogHistoryProxy)
 	router.Handle("/catalog/*", createCatalogProxy("http://127.0.0.1:3000"))
-	router.Handle("/recommend/*", createRecommendationProxy("http://127.0.0.1:8000"))
 	streamingProxy := createStreamingProxy("http://127.0.0.1:5000")
+	router.Handle("/streaming/api/v1/videos/availability", streamingProxy)
+	recommendationProxy := createRecommendationProxy("http://127.0.0.1:8000")
+	router.With(
+		middlewares.RequireSession(Authcntrl.SessionManager),
+		middlewares.ForwardSessionUserID,
+	).Handle("/recommend/api/user/recommend", recommendationProxy)
+	router.Handle("/recommend/*", recommendationProxy)
 	router.Handle("/streaming/health", streamingProxy)
 	router.Handle("/streaming/streams/*", streamingProxy)
 	router.Handle("/streaming/output/*", streamingProxy)
