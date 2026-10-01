@@ -41,6 +41,20 @@ func RequireSession(sessionManager *sessions.SessionManager) func(http.Handler) 
 	}
 }
 
+func ForwardSessionUserID(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		data, ok := SessionDataFromContext(r.Context())
+		if !ok || data["user_id"] == "" {
+			formatters.ErrorResponse(w, http.StatusUnauthorized, nil, "Authentication required")
+			return
+		}
+
+		request := r.Clone(r.Context())
+		request.Header.Set("X-User-ID", data["user_id"])
+		next.ServeHTTP(w, request)
+	})
+}
+
 func SessionDataFromContext(ctx context.Context) (map[string]string, bool) {
 	data, ok := ctx.Value(sessionContextKey{}).(map[string]string)
 	return data, ok

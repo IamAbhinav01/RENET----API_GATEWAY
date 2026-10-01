@@ -25,6 +25,19 @@ func NewAuthController(serv services.UserService, session *redis.SessionManager)
 	}
 }
 
+func setSessionCookie(w http.ResponseWriter, r *http.Request, sessionID string, maxAge int) {
+	secure := r.TLS != nil || strings.EqualFold(r.Header.Get("X-Forwarded-Proto"), "https")
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_id",
+		Value:    sessionID,
+		Path:     "/",
+		MaxAge:   maxAge,
+		HttpOnly: true,
+		Secure:   secure,
+		SameSite: http.SameSiteLaxMode,
+	})
+}
+
 func (cntrl AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 	payload, ok := r.Context().Value(helpers.PayloadContextKet).(dtos.SignupRequestDTO)
 	if !ok {
@@ -52,16 +65,7 @@ func (cntrl AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 
 	err = cntrl.SessionManager.Migrate(r.Context(), userSession)
 	if err == nil {
-		cookie := &http.Cookie{
-			Name:     "session_id",
-			Value:    userSession.Id,
-			Path:     "/",
-			MaxAge:   86400,
-			HttpOnly: true,
-			Secure:   true,
-			SameSite: http.SameSiteStrictMode,
-		}
-		http.SetCookie(w, cookie)
+		setSessionCookie(w, r, userSession.Id, 86400)
 	}
 
 	formatters.SuccessResponse(w, http.StatusCreated, "User sign-up successfully")
@@ -94,16 +98,7 @@ func (cntrl AuthController) Login(w http.ResponseWriter, r *http.Request) {
 
 	err = cntrl.SessionManager.Migrate(r.Context(), user_session)
 	if err == nil {
-		cookie := &http.Cookie{
-			Name:     "session_id",
-			Value:    user_session.Id,
-			Path:     "/",
-			MaxAge:   86400,
-			HttpOnly: true,
-			Secure:   true,
-			SameSite: http.SameSiteStrictMode,
-		}
-		http.SetCookie(w, cookie)
+		setSessionCookie(w, r, user_session.Id, 86400)
 	} else {
 		formatters.ErrorResponse(w, http.StatusInternalServerError, err, "Failed to create session")
 		return
@@ -118,16 +113,7 @@ func (cntrl AuthController) LogOut(w http.ResponseWriter, r *http.Request) {
 		_ = cntrl.SessionManager.Store().Destroy(r.Context(), cookie.Value)
 	}
 
-	DeletedCookie := &http.Cookie{
-		Name:     "session_id",
-		Value:    "",
-		Path:     "/",
-		MaxAge:   -1,
-		HttpOnly: true,
-		Secure:   true,
-		SameSite: http.SameSiteStrictMode,
-	}
-	http.SetCookie(w, DeletedCookie)
+	setSessionCookie(w, r, "", -1)
 
 	formatters.SuccessResponse(w, http.StatusAccepted, "Logged-OUT successfully")
 }
